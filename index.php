@@ -3,5 +3,9 @@
     $dotenv = Dotenv\Dotenv::createImmutable('./');
     $dotenv->load();
 
-    echo $_ENV['MI_VARIABLE_ENTORNO']
+    echo $_ENV['PUERTO'];
+    echo $_ENV['USUARIO'];
+    echo $_ENV['PASSWORD'];
+    echo $_ENV['HOST'];
+    echo $_ENV['DBNAME'];
 ?>
