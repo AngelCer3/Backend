@@ -1,8 +1,5 @@
 <?php
-    require_once realpath('./vendor/autoload.php');
-    $dotenv = Dotenv\Dotenv::createImmutable('./');
-    $dotenv->load();
-
+    
     $servidor = $_ENV['HOST'];
     $conexion;
     $puerto = $_ENV['PUERTO'];
