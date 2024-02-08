@@ -1,4 +1,7 @@
 <?php
+
+use PSpell\Config;
+
 require_once realpath('../../vendor/autoload.php');
 $dotenv = Dotenv\Dotenv::createImmutable('../../');
 $dotenv->load();
@@ -46,7 +49,44 @@ function mostrar_datos(){
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
     return $result;
 }
+function agregar_datos($datos){
+    $conexion = Conexion::obtener_conexion();
+    $query = "INSERT INTO usuarios(nombre, edad, sexo) VALUES(:nombre, :edad, :sexo)";
+    $stmt = $conexion->prepare($query);
+    $stmt->bindParam(":nombre", $datos["nombre"]);
+    $stmt->bindParam(":edad", $datos["edad"]);
+    $stmt->bindParam(":sexo", $datos["sexo"]);
+    $stmt->execute();
+    return json_encode($stmt);
+}
+
+function actualizar_datos($datos){
+    $conexion = Conexion::obtener_conexion();
+    $query = "UPDATE usuarios SET nombre=:nombre, edad=:edad, sexo=:sexo WHERE id_persona=:id";
+    $stmt = $conexion->prepare($query);
+    $stmt->bindParam(":id", $datos['id_persona']);
+    $stmt->bindParam(":nombre", $datos['nombre']);
+    $stmt->bindParam(":edad", $datos['edad']);
+    $stmt->bindParam(":sexo", $datos['sexo']);
+    $stmt->execute();
+    return $stmt;
+}
+
+function eliminar_datos($datos){
+    $conexion = Conexion::obtener_conexion();
+    $query = "DELETE FROM usuarios WHERE id_persona=:id";
+    $stmt = $conexion->prepare($query);
+    $stmt->bindParam(":id", $datos['id_persona']);
+    $stmt->execute();
+    return $stmt;
+}
 
 /* Actualizar, Eliminar y Agregar */
+echo print_r(mostrar_datos());
+/* agregar_datos(['nombre'=>'Axel', 'edad'=>30, 'sexo'=>'Siempre']);
+echo print_r(mostrar_datos());
+actualizar_datos(['id_persona'=>5, 'nombre'=>'Jorge', 'edad'=>26, 'sexo'=>'Masculino']);
+echo print_r(mostrar_datos()); */
+eliminar_datos(['id_persona'=>6]);
 echo print_r(mostrar_datos());
 ?>
