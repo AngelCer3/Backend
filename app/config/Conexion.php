@@ -1,9 +1,11 @@
 <?php
+namespace config;
 
-use PSpell\Config;
+use Dotenv\Dotenv;
+use PDO;
+use PDOException;
 
-require_once realpath('../../vendor/autoload.php');
-$dotenv = Dotenv\Dotenv::createImmutable('../../');
+$dotenv = Dotenv::createImmutable('./');
 $dotenv->load();
 define('SERVIDOR', $_ENV['HOST']);
 define('USER', $_ENV['USUARIO']);
@@ -14,7 +16,7 @@ class Conexion
 {
     private static $conexion;
 
-    public static function abrir_conexion()
+    private static function abrir_conexion()
     {
         if (!isset(self::$conexion)) {
             try {
@@ -41,7 +43,12 @@ class Conexion
         self::$conexion = null;
     }
 }
-function mostrar_datos(){
+
+
+/* Crud::insercion(['nombre'=>'angel','edad'=>23, 'sexo'=>'Masculino']); */
+/* Crud::actualizar(['edad'=>40,'sexo'=>'Binario', 'id_persona'=>1]); */
+/* Crud::eliminar(['id_persona'=>3]); */
+/* function mostrar_datos(){
     $conexion = Conexion::obtener_conexion();
     $query = "SELECT * FROM usuarios";
     $stmt = $conexion->prepare($query);
@@ -82,11 +89,11 @@ function eliminar_datos($datos){
 }
 
 /* Actualizar, Eliminar y Agregar */
-echo print_r(mostrar_datos());
+/* echo print_r(mostrar_datos()); */
 /* agregar_datos(['nombre'=>'Axel', 'edad'=>30, 'sexo'=>'Siempre']);
 echo print_r(mostrar_datos());
 actualizar_datos(['id_persona'=>5, 'nombre'=>'Jorge', 'edad'=>26, 'sexo'=>'Masculino']);
 echo print_r(mostrar_datos()); */
-eliminar_datos(['id_persona'=>6]);
-echo print_r(mostrar_datos());
+/* eliminar_datos(['id_persona'=>6]);
+echo print_r(mostrar_datos()); */ 
 ?>
