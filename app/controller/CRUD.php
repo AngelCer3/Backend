@@ -53,8 +53,13 @@ class CRUD
     }
     public function insercion($data)
     {
-        
-        $consulta = Conexion::obtener_conexion()->prepare("INSERT INTO $this->tabla ($this->atributos) VALUES (:nombre,:edad,:sexo)");
+        $datos_tabla = implode(",", array_keys($data));
+/*         echo print_r($datos_tabla);*/        
+        $datos_values = ":" . implode(", :", array_keys($data));
+        /* echo print_r($datos_values); */
+
+
+        $consulta = Conexion::obtener_conexion()->prepare("INSERT INTO $this->tabla ($datos_tabla) VALUES ($datos_values)");
         if ($consulta->execute($data)) {
             echo json_encode([1, "Insercion completa"]);
         } else {
@@ -67,7 +72,11 @@ class CRUD
         $datos_actuales['nombre'] = array_key_exists('nombre', $data) ? $data['nombre'] : $datos_actuales['nombre'];
         $datos_actuales['edad'] = array_key_exists('edad', $data) ? $data['edad'] : $datos_actuales['edad'];
         $datos_actuales['sexo'] = array_key_exists('sexo', $data) ? $data['sexo'] : $datos_actuales['sexo'];
-        $consulta = Conexion::obtener_conexion()->prepare("UPDATE usuarios SET nombre=:nombre, edad=:edad, sexo=:sexo WHERE id_persona=:id_persona");
+
+        $datos_tabla = implode(",", array_keys($datos_actuales));
+        $datos_values = ":" . implode(", :", array_keys($datos_actuales));
+
+        $consulta = Conexion::obtener_conexion()->prepare("UPDATE $this->tabla SET $datos_tabla = $datos_values WHERE id_persona=:id_persona");
         if ($consulta->execute($datos_actuales)) {
             echo json_encode([1, "Actualizacion completa"]);
         } else {
