@@ -7,21 +7,15 @@ require_once realpath('.../../vendor/autoload.php');
 class CRUD
 {
 
-    function __construct($tabla)
+    function __construct($tabla, $id_tabla)
     {
         $this->tabla = $tabla;
-        $consulta = Conexion::obtener_conexion()->prepare("DESCRIBE $this->tabla");
-        $consulta->execute();
-        $campos = $consulta->fetchAll(PDO::FETCH_ASSOC);
-        $atributos = [];
-        foreach($campos as $campo){
-            array_push($atributos, $campo['Field']);
-        }
-        $this->atributos = $atributos;
+        $this->id_tabla = $id_tabla;
+        $this->atributos = $this->atributos_tabla();
     }
 
-    private function obtener_campos($tabla){
-        $consulta = Conexion::obtener_conexion()->prepare("DESCRIBE $tabla");
+    private function atributos_tabla(){
+        $consulta = Conexion::obtener_conexion()->prepare("DESCRIBE $this->tabla");
         $consulta->execute();
         $campos = $consulta->fetchAll(PDO::FETCH_ASSOC);
         $atributos = [];
@@ -31,19 +25,20 @@ class CRUD
         return $atributos;
     }
 
-    public function consulta()
+    public function consulta($seleccion = ['*'])
     {
-        $consulta = Conexion::obtener_conexion()->prepare("SELECT * FROM $this->tabla");
+        $seleccion = implode(',', $seleccion);
+        $consulta = Conexion::obtener_conexion()->prepare("SELECT $seleccion FROM $this->tabla");
         if ($consulta->execute()) {
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
-            echo print_r($this->atributos);
         } else {
-            echo "error al consulta";
+            $data = [];
         }
+        return $data;
     }
     private function consulta_id($id)
     {
-        $consulta = Conexion::obtener_conexion()->prepare("SELECT * FROM usuarios WHERE id_persona=:id_persona");
+        $consulta = Conexion::obtener_conexion()->prepare("SELECT * FROM $this->tabla WHERE $this->id_tabla=:id_tabla");
         if ($consulta->execute($id)) {
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
         } else {
@@ -53,11 +48,8 @@ class CRUD
     }
     public function insercion($data)
     {
-        $datos_tabla = implode(",", array_keys($data));
-/*         echo print_r($datos_tabla);*/        
-        $datos_values = ":" . implode(", :", array_keys($data));
-        /* echo print_r($datos_values); */
-
+        $datos_tabla = implode(",", $this->atributos);
+        $datos_values = ":" . implode(", :", $this->atributos);
 
         $consulta = Conexion::obtener_conexion()->prepare("INSERT INTO $this->tabla ($datos_tabla) VALUES ($datos_values)");
         if ($consulta->execute($data)) {
@@ -85,7 +77,7 @@ class CRUD
     }
     public function eliminar($id)
     {
-        $consulta = Conexion::obtener_conexion()->prepare("DELETE FROM usuarios WHERE id_persona= :id_persona");
+        $consulta = Conexion::obtener_conexion()->prepare("DELETE FROM $this->tabla WHERE $this->id_tabla= :$this->id_tabla");
         if ($consulta->execute($id)) {
             echo json_encode([1, "Eliminacion completa"]);
         } else {

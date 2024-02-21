@@ -1,12 +1,5 @@
 <?php
-    use controller\CRUD;
+    use controller\Alumnos;
     require_once realpath('./vendor/autoload.php');
-    $newUser = array(
-        'id_persona' => '',
-        'nombre' => 'axel',
-        'edad' => '23',
-        'sexo' => 'Siempre'
-    );
-    $crud = new CRUD('usuarios');
-    $crud->insercion($newUser);
+    Alumnos::eliminar_datos();
 ?>
