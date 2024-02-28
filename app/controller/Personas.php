@@ -15,10 +15,10 @@ class Personas
         $persona = new TablaPersona();
         echo json_encode($persona->consulta());
     }
-   /*  public static function obtener_datos_id(){
+    public static function obtener_datos_elemento(){
         $persona = new TablaPersona();
-        echo json_encode($persona->consultaporId());
-    } */
+        return $persona->consulta(['id_persona', 'nombre'])->where('id_persona', '2');
+    }
     public static function insertar_datos()
     {
         $persona = new TablaPersona();
@@ -26,11 +26,11 @@ class Personas
     }
     public static function actualizar_datos(){
         $persona = new TablaPersona();
-        echo json_encode($persona->actualizar(['nombre'=>'PacoMemo', 'edad'=>110, 'id_persona'=>8]));
+        echo json_encode($persona->actualizar(['nombre'=>'Striker', 'edad'=> 10])->where('id_persona', '2'));
     }
     public static function eliminar_datos(){
         $persona = new TablaPersona();
-        echo json_encode($persona->eliminar(['id_persona'=>8]));
+        echo json_encode($persona->eliminar()->where('nombre', 'Carlitos'));
     }
 }
 

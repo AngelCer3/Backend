@@ -1,5 +1,5 @@
 <?php
-    use controller\Alumnos;
+    use controller\Personas;
     require_once realpath('./vendor/autoload.php');
-    Alumnos::eliminar_datos();
+    echo print_r (Personas::eliminar_datos());
 ?>

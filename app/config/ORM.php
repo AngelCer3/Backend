@@ -24,33 +24,54 @@ class ORM
         }
         return $atributos;
     }
+    public function where($campo, $valor_campo){
+        $queryFinal = $this->query;
+        $consulta = Conexion::obtener_conexion()->prepare("$queryFinal WHERE $campo =:filtro");
+        if($consulta->execute(['filtro'=> "$valor_campo"])){
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+        }else{
+            $data = [];
+        }
+        return $data;
+    }
+    public function all(){
+        $queryFinal = $this->query;
+        $consulta = Conexion::obtener_conexion()->prepare($queryFinal);
+        if($consulta->execute()){
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+        }else{
+            $data = [];
+        }
+        return $data;
+    }
+    public function first(){
+        $queryFinal = $this->query;
+        $consulta = Conexion::obtener_conexion()->prepare($queryFinal);
+        if($consulta->execute()){
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+        }else{
+            $data = [];
+        }
+        return $data;
+    }
 
     public function consulta($seleccion = ['*'])
     {
         $seleccion = implode(',', $seleccion);
-        $consulta = Conexion::obtener_conexion()->prepare("SELECT $seleccion FROM $this->tabla");
-        if ($consulta->execute()) {
-            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
-        } else {
-            $data = [];
-        }
-        return $data;
+        $this->query = "SELECT $seleccion FROM $this->tabla";
+        return $this;
     }
-    private function consulta_id($id)
-    {
-        $consulta = Conexion::obtener_conexion()->prepare("SELECT * FROM $this->tabla WHERE $this->id_tabla=:id_tabla");
-        if ($consulta->execute($id)) {
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
-        } else {
-            $data = [];
-        }
-        return $data;
-    }
+
     public function insercion($data)
     {
-        $datos_tabla = implode(",", $this->atributos);
-        $datos_values = ":" . implode(", :", $this->atributos);
-
+        $temp = array();
+        foreach($this->atributos as $valor){
+            if($this->id_tabla != $valor){
+                array_push($temp, $valor);
+            }
+        }
+        $datos_tabla = implode(",", $temp);
+        $datos_values = ":" . implode(", :", $temp);
         $consulta = Conexion::obtener_conexion()->prepare("INSERT INTO $this->tabla ($datos_tabla) VALUES ($datos_values)");
         return $consulta->execute($data);
     }
@@ -63,20 +84,20 @@ class ORM
             $contador++;
         } */
 
-        $query = [];
+        $query2 = [];
         foreach(array_keys($data) as $key){
             if($this->id_tabla != $key){
-                array_push($query, $key.'=:'.$key);
+                array_push($query2, $key.'='."'$data[$key]'");
             }
         }
-        $query = implode(', ', $query);
-        $consulta = Conexion::obtener_conexion()->prepare("UPDATE $this->tabla SET $query  WHERE $this->id_tabla=:$this->id_tabla");
-        return $consulta->execute($data);
+        $query2 = implode(', ', $query2);
+        $this->query = "UPDATE $this->tabla SET $query2";
+        return $this;
     }
-    public function eliminar($id)
+    public function eliminar()
     {
-        $consulta = Conexion::obtener_conexion()->prepare("DELETE FROM $this->tabla WHERE $this->id_tabla= :$this->id_tabla");
-        return $consulta->execute($id);
+       $this->query = "DELETE FROM $this->tabla";
+       return $this;
     }
 }
 ?>
