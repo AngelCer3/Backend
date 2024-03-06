@@ -2,6 +2,7 @@
 namespace config;
 use config\Conexion;
 use PDO;
+use PDOException;
 
 require_once realpath('.../../vendor/autoload.php');
 class ORM
@@ -9,71 +10,117 @@ class ORM
     protected $tabla;
     protected $id_tabla;
     protected $atributos;
+    private $contadorWhere;
     function __construct()
     {
         $this->atributos = $this->atributos_tabla();
     }
 
     private function atributos_tabla(){
-        $consulta = Conexion::obtener_conexion()->prepare("DESCRIBE $this->tabla");
-        $consulta->execute();
-        $campos = $consulta->fetchAll(PDO::FETCH_ASSOC);
-        $atributos = [];
-        foreach($campos as $campo){
-            array_push($atributos, $campo['Field']);
+        try{
+            $consulta = Conexion::obtener_conexion()->prepare("DESCRIBE $this->tabla");
+            $consulta->execute();
+            $campos = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $atributos = [];
+            foreach($campos as $campo){
+                array_push($atributos, $campo['Field']);
+            }
+            return $atributos;
+        }catch (PDOException $e){
+            return json_encode($e);
         }
-        return $atributos;
     }
-    public function where($campo, $valor_campo){
-        $queryFinal = $this->query;
-        $consulta = Conexion::obtener_conexion()->prepare("$queryFinal WHERE $campo =:filtro");
-        if($consulta->execute(['filtro'=> "$valor_campo"])){
-            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
-        }else{
-            $data = [];
+
+    public function count($seleccion){
+        try{
+            $seleccion = implode(',', $seleccion);
+            $this->query = "SELECT COUNT($seleccion) FROM $this->tabla";
+            return $this;
+        }catch(PDOException $e){
+            return json_encode($e);
         }
-        return $data;
     }
+
+    public function where($campo, $valor_campo, $tipo = "AND") {
+        try {
+            $queryFinal = $this->query;
+            if ($this->contadorWhere > 0) {
+                $this->query = "$queryFinal " . ($tipo != "AND" ? 'OR' : $tipo) . " $campo = '$valor_campo'";
+            } else {
+                $this->query = "$queryFinal WHERE $campo = '$valor_campo'";
+            }
+            $this->contadorWhere++;
+            return $this;
+        } catch (PDOException $e) {
+            return json_encode($e);
+        }
+    }   
     public function all(){
-        $queryFinal = $this->query;
-        $consulta = Conexion::obtener_conexion()->prepare($queryFinal);
-        if($consulta->execute()){
-            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
-        }else{
-            $data = [];
+        try {
+            $queryFinal = $this->query;
+            $consulta = Conexion::obtener_conexion()->prepare($queryFinal);
+            if($consulta->execute()){
+                $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            }else{
+                $data = [];
+            }
+            return $data;
+        }catch (PDOException $e){
+            return json_encode($e);
         }
-        return $data;
     }
     public function first(){
-        $queryFinal = $this->query;
-        $consulta = Conexion::obtener_conexion()->prepare($queryFinal);
-        if($consulta->execute()){
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
-        }else{
-            $data = [];
+        try{
+            $queryFinal = $this->query;
+            $consulta = Conexion::obtener_conexion()->prepare($queryFinal);
+            if($consulta->execute()){
+                $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            }else{
+                $data = [];
+            }
+            return $data;
+        }catch(PDOException $e){
+            return json_encode($e);
         }
-        return $data;
+    }
+    public function get(){
+        try{
+            $queryFinal = $this->query;
+            $consulta = Conexion::obtener_conexion()->prepare($queryFinal);
+            return $consulta->execute();
+        }catch(PDOException $e){
+            return json_encode($e);
+        }
     }
 
     public function consulta($seleccion = ['*'])
     {
-        $seleccion = implode(',', $seleccion);
-        $this->query = "SELECT $seleccion FROM $this->tabla";
-        return $this;
+        try{
+            $seleccion = implode(',', $seleccion);
+            $this->query = "SELECT $seleccion FROM $this->tabla";
+            return $this;
+        }catch(PDOException $e){
+            return json_encode($e);
+        }
     }
 
     public function insercion($data)
     {
-        $temp = array();
-        foreach($this->atributos as $valor){
-            if($this->id_tabla != $valor){
-                array_push($temp, $valor);
+        try{
+            $temp = array();
+            foreach($this->atributos as $valor){
+                if($this->id_tabla != $valor){
+                    array_push($temp, $valor);
+                }
             }
+            $datos_tabla = implode(",", $temp);
+            $datos_values = ":" . implode(", :", $temp);
+            $consulta = Conexion::obtener_conexion()->prepare("INSERT INTO $this->tabla ($datos_tabla) VALUES ($datos_values)");
+            return $consulta->execute($data);
+            
+        }catch (PDOException $e){
+            return json_encode($e);
         }
-        $datos_tabla = implode(",", $temp);
-        $datos_values = ":" . implode(", :", $temp);
-        $consulta = Conexion::obtener_conexion()->prepare("INSERT INTO $this->tabla ($datos_tabla) VALUES ($datos_values)");
-        return $consulta->execute($data);
     }
     public function actualizar($data)
     {
@@ -83,21 +130,28 @@ class ORM
             $query .= $this->id_tabla == $key ? '' : ($contador !=0 ? ','.$key.'=:'. $key : $key .'=:'. $key); 
             $contador++;
         } */
-
-        $query2 = [];
-        foreach(array_keys($data) as $key){
-            if($this->id_tabla != $key){
-                array_push($query2, $key.'='."'$data[$key]'");
+        try{
+            $query2 = [];
+            foreach(array_keys($data) as $key){
+                if($this->id_tabla != $key){
+                    array_push($query2, $key.'='."'$data[$key]'");
+                }
             }
+            $query2 = implode(', ', $query2);
+            $this->query = "UPDATE $this->tabla SET $query2";
+            return $this;
+        }catch(PDOException $e){
+            return json_encode($e);
         }
-        $query2 = implode(', ', $query2);
-        $this->query = "UPDATE $this->tabla SET $query2";
-        return $this;
     }
     public function eliminar()
     {
-       $this->query = "DELETE FROM $this->tabla";
-       return $this;
+       try{
+           $this->query = "DELETE FROM $this->tabla";
+           return $this;
+       }catch(PDOException $e){
+        return json_encode($e);
+       }
     }
 }
 ?>

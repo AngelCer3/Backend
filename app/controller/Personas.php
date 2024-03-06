@@ -13,16 +13,20 @@ class Personas
     public static function obtener_datos()
     {
         $persona = new TablaPersona();
-        echo json_encode($persona->consulta());
+        echo json_encode($persona->consulta()->first());
     }
     public static function obtener_datos_elemento(){
         $persona = new TablaPersona();
-        return $persona->consulta(['id_persona', 'nombre'])->where('id_persona', '2');
+        return $persona->consulta()->where('nombre', 'cristo')->where('edad', '23')->first();
+    }
+    public static function contar_datos(){
+        $persona = new TablaPersona();
+        return $persona->count(['*'])->where('edad', '23')->all();
     }
     public static function insertar_datos()
     {
         $persona = new TablaPersona();
-        echo json_encode($persona->insercion(['nombre'=>'Cristo', 'edad'=>24, 'sexo'=>'Masculino',] ));
+        echo json_encode($persona->insercion(['nombre'=>'Angel', 'edad'=>23, 'sexo'=>'Femenino']));
     }
     public static function actualizar_datos(){
         $persona = new TablaPersona();
