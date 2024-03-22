@@ -40,14 +40,80 @@ class ORM
             return json_encode($e);
         }
     }
+    public function limit($limite = '', $compensar = '')
+    {
+        try {
+            if($limite === '' && $compensar === '') {
+                $limite = '100';
+                $query3 = $this->query;
+                $this->query = "$query3 LIMIT $limite";
+            } else {
+                $query3 = $this->query;
+                $this->query = "$query3 LIMIT $limite OFFSET $compensar";
+            }
+            return $this;
+        } catch(PDOException $e) {
+            return json_encode($e);
+        }
+    }
+    public function max($seleccion){
+        try{
+            $seleccion = implode(',', $seleccion);
+            $this->query = "SELECT MAX($seleccion) FROM $this->tabla";
+            return $this;
+        }catch(PDOException $e){
+            return json_encode($e);
+        }
+    }
+    public function min($seleccion){
+        try{
+            $seleccion = implode(',', $seleccion);
+            $this->query = "SELECT MIN($seleccion) FROM $this->tabla";
+            return $this;
+        }catch(PDOException $e){
+            return json_encode($e);
+        }
+    }
+    public function sum($seleccion){
+        try{
+            $seleccion = implode(',', $seleccion);
+            $this->query = "SELECT SUM($seleccion) FROM $this->tabla";
+            return $this;
+        }catch(PDOException $e){
+            return json_encode($e);
+        }
+    }
 
+    public function avg($seleccion){
+        try{
+            $seleccion = implode(',', $seleccion);
+            $this->query = "SELECT AVG($seleccion) FROM $this->tabla";
+            return $this;
+        }catch(PDOException $e){
+            return json_encode($e);
+        }
+    }
+    public function like($valores = '') {
+        try {
+            $query4 = $this->query;
+            $this->query = "$query4 LIKE '$valores%'";
+            /* echo print_r($this->query); */
+            return $this;
+        } catch(PDOException $e) {
+            return json_encode($e);
+        }
+    }    
     public function where($campo, $valor_campo, $tipo = "AND") {
         try {
             $queryFinal = $this->query;
             if ($this->contadorWhere > 0) {
                 $this->query = "$queryFinal " . ($tipo != "AND" ? 'OR' : $tipo) . " $campo = '$valor_campo'";
             } else {
-                $this->query = "$queryFinal WHERE $campo = '$valor_campo'";
+                if($valor_campo === ''){
+                    $this->query = "$queryFinal WHERE $campo";
+                }else{
+                    $this->query = "$queryFinal WHERE $campo = '$valor_campo'";
+                }
             }
             $this->contadorWhere++;
             return $this;
