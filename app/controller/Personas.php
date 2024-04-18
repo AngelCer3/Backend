@@ -2,7 +2,6 @@
 
 namespace controller;
 
-use model\TablaCarros;
 use model\TablaPersona;
 
 require_once realpath('.../../vendor/autoload.php');

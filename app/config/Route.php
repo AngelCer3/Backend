@@ -12,6 +12,7 @@ class Route
 
     private const DIRECTORIO = array(
         'home' => 'view/home.view',
+        'productos' => 'view/productos.view',
         'error' => 'view/error.view',
         'login' => 'view/login/login.view',
         'registre' => 'view/login/registre.view',

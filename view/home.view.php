@@ -23,6 +23,7 @@ $dependencia = new Route();
         <div class="row mt-2 justify-content-center">
             <div class="col text-center">
                 <a href="<?=$dependencia->redireccion('logout')?>" class="btn btn-secondary mt-2">Cerrar sesion</a>
+                <a href="<?=$dependencia->redireccion('productos')?>" class="btn btn-success mt-2">Productos</a>
             </div>
         </div>
     </div>
