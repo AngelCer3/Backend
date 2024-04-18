@@ -45,6 +45,7 @@ class Conexion
 }
 
 
+
 /* Crud::insercion(['nombre'=>'angel','edad'=>23, 'sexo'=>'Masculino']); */
 /* Crud::actualizar(['edad'=>40,'sexo'=>'Binario', 'id_persona'=>1]); */
 /* Crud::eliminar(['id_persona'=>3]); */

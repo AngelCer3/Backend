@@ -1,0 +1,21 @@
+body{
+    background: url("../img/Fondo_Pantalla.jpg") fixed no-repeat 0 0;
+    background-size: cover;
+    background-position: center center;
+}
+.card{
+    background-color: rgba(255, 255, 255, 0.579);
+}
+header{
+    background-color: rgba(196, 198, 200, 0.504);
+    box-shadow: 0 2px 4px black;
+    padding: 10px 0;
+    display: flex;
+}
+nav{
+    text-decoration: none;
+    color: #fffcfc;
+    margin-right: 50px;
+    margin-left: 200px;
+    align-items: center;
+}
