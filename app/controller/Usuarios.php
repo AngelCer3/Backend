@@ -2,80 +2,102 @@
 
     namespace controller;
     use model\TablaUsuarios;
+    use config\View;
     use config\Route;
     require_once realpath('.../../vendor/autoload.php');
 
-    class Usuarios{
+    class Usuarios extends View{
         
-        public function insertarUsuarios(){
-            $ruta = new Route();
-            $usuarios = new TablaUsuarios();
-
-            $passEncrypt = password_hash($_POST['pass'], PASSWORD_DEFAULT);
-
-            $arreglo = ['nombre'=>$_POST['nombre'], 
-            'apellidoPaterno'=>$_POST['apellidoPaterno'], 
-            'apellidoMaterno'=>$_POST['apellidoMaterno'],
-            'correo'=>$_POST['correo'],
-            'pass'=>$passEncrypt];
-
-            $stmt = $usuarios->insercion($arreglo);
-
-            if($stmt){
-                echo print_r($stmt);
-                $ruta->redirigir('login');
-            }else{
-                echo print_r($stmt);
-                $ruta->redirigir('error');
-            }
-            
-        }
-        public function comprobarUsuario(){
-           
-            $ruta = new Route();
-            $usuario = new TablaUsuarios();
-
-            $correo = $_POST['correo'];
-            $pass = $_POST['pass'];
-
-           $correo_veri = $usuario->consulta()->where('correo',$correo)->first();
-
-
-           if($correo_veri){
-            if(password_verify($pass,$correo_veri['pass'])){
-                session_start();
-                $_SESSION['correo'] = $correo_veri['correo'];
-                $_SESSION['id_usuario'] =$correo_veri['id_usuario']; 
-                $ruta->redirigir('home');
-            }else{
-                $ruta->redirigir('login');
-            }
-           }else{
-                $ruta->redirigir('login');
-           }
-
-        }
-        public function verificar_session(){
-            $ruta = new Route();
-            if(!isset($_SESSION['id_usuario'])){
-                $ruta->redirigir('login');
+        public function index(){
+        session_start();
+        $usuario = new TablaUsuarios();
+        $datos = $usuario->consulta()->all();
+            if (isset($_SESSION['id_usuario'])) {
+                return parent::vista('usuarios', $datos);
+            } else {
+                return parent::vista('login/login');
             }
         }
-    
-        public function inicioSession(){
-            $ruta = new Route();
-            if(isset($_SESSION['id_usuario'])){
-                $ruta->redirigir('home');
-            }
-        }
-    
-        public function cerrarSession(){
-            $ruta = new Route();
+        public function insercion(){
             session_start();
-            $_SESSION = array();
-            session_destroy();
-            $ruta->redirigir('login');
+            $usuario = new TablaUsuarios();
+            $datos = $usuario->consulta()->all();
+            if (isset($_SESSION['id_usuario'])) {
+                return parent::vista('insertarUsuarios');
+            } else {
+                return parent::vista('usuarios', $datos);
+            }
+        }
+
+        public function completarInsercion(){
+        session_start();
+       
+        $usuario = new TablaUsuarios();
+        $passEncrypt = password_hash($_POST['pass'], PASSWORD_DEFAULT);
+
+        $arreglo = [
+            'nombre' => $_POST['nombre'],
+            'apellidoPaterno' => $_POST['apellidoPaterno'],
+            'apellidoMaterno' => $_POST['apellidoMaterno'],
+            'correo' => $_POST['correo'],
+            'pass' => $passEncrypt
+        ];
+
+        $stmt = $usuario->insercion($arreglo);
+        if ($stmt) {
+            $usuarios = new TablaUsuarios();
+            $datos = $usuarios->consulta()->all();    
+            return parent::vista('usuarios', $datos);
+        } else {
+            return parent::vista('error');
         }
     }
+    public function editar($id){
+        session_start();
+        $usuario = new TablaUsuarios();
+        $datos = $usuario->consulta()->where('id_usuario',$id)->first();
+        if (isset($_SESSION['id_usuario'])) {
+            return parent::vista('editarUsuarios', $datos);
+        } else {
+            return parent::vista('usuarios', $datos);
+        }
+    }
+    public function completarEditar($id){
+        session_start();
+        $usuario = new TablaUsuarios();
+        $passEncrypt = password_hash($_POST['pass'], PASSWORD_DEFAULT);
+
+        $arreglo = [
+            'nombre' => $_POST['nombre'],
+            'apellidoPaterno' => $_POST['apellidoPaterno'],
+            'apellidoMaterno' => $_POST['apellidoMaterno'],
+            'correo' => $_POST['correo'],
+            'pass' => $passEncrypt
+        ];
+
+        $stmt = $usuario->actualizar($arreglo)->where('id_usuario', $id)->first();
+        
+        if (!$stmt) {
+            $usuarios = new TablaUsuarios();
+            $datos = $usuarios->consulta()->all();    
+            return parent::vista('usuarios', $datos);
+        } else {
+            return parent::vista('error');
+        }
+    }
+    public function eliminarUsuario($id){
+        $usuario = new TablaUsuarios();   
+        $datos = $usuario->eliminar()->where('id_usuario', $id)->get();
+        if (!isset($_SESSION['id_usuario'])) {
+            $datos = $usuario->consulta()->all();
+            return parent::vista('usuarios', $datos);
+        } else {
+            return parent::vista('login/login');
+        }
+    }
+
+       
+    }
+    $controlador = new Usuarios();
 
 ?>

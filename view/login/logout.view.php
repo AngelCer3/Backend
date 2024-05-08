@@ -1,8 +1,9 @@
 <?php
 
-    use controller\Usuarios;
+    use controller\Login;
 
-    $cerrar = new Usuarios();
+    $cierre = new Login();
 
-    $cerrar->cerrarSession();
-?>  
+    $cierre->cerrarSession();
+
+?>

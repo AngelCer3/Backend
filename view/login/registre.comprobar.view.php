@@ -1,9 +1,9 @@
 <?php
 
-    use controller\Usuarios;
+    use controller\Login;
 
-    $insertar = new Usuarios();
+    $insertar = new Login();
 
-    $insertar->insertarUsuarios();
+    $insertar->completarRegistro();
 
 ?>

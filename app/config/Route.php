@@ -9,54 +9,59 @@ class Route
     private const DEP_IMG = self::SERVER . "public/img/";
     private const DEP_JS = self::SERVER . "public/js/";
     private const DEP_CSS = self::SERVER . "public/css/";
-
-    private const DIRECTORIO = array(
-        'home' => 'view/home.view',
-        'productos' => 'view/productos.view',
-        'error' => 'view/error.view',
-        'login' => 'view/login/login.view',
-        'registre' => 'view/login/registre.view',
-        'comprobar'=> 'view/login/registre.comprobar.view',
-        'logincomprobar'=> 'view/login/login.comprobar.view',
-        'logout' => 'view/login/logout.view'
-    );
-   /*  public function __construct()
+    private const ERROR = ["Error", 'index'];
+    private $ruta2 = [];
+    private $controller;
+    private $routes = [];
+    private $method;
+    protected $importacion;
+    public function __construct()
     {
-    }  */
+        $this->importacion;
+    }
+    
+
+    public function get($ruta, $metodo){
+        $ruta_final = trim($ruta, '/');
+        $this->routes['GET'][$ruta_final] = $metodo;
+    }
+    public function post($ruta, $metodo){
+        $ruta_final = trim($ruta, '/');
+        $this->routes['POST'][$ruta_final] = $metodo;
+    }
+    public function put($ruta, $metodo){
+        $ruta_final = trim($ruta, '/');
+        $this->routes['PUT'][$ruta_final] = $metodo;
+    }
+    public function delete($ruta, $metodo){
+        $ruta_final = trim($ruta, '/');
+        $this->routes['DELETE'][$ruta_final] = $metodo;
+    }
         
 
 
-    public function vista()
+    public function match_route($ruta, $method)
     {   
-        session_start();
-        $sesiones = new Usuarios();
-        $vista = isset($_REQUEST['view']) ? $_REQUEST['view'] : 'login';
-
-        if($vista === 'home'){
-            $sesiones->verificar_session();
-        }elseif($vista === 'login'){
-            $sesiones->inicioSession();
-        }elseif($vista === 'registre'){
-            $sesiones->inicioSession();
+        if(preg_match('/[a-zA-Z0-9_-]\/[a-zA-Z0-9_-]/',$ruta)){
+            $this->ruta2 = explode('/', $ruta);
+            $this->controller = array_key_exists($this->ruta2[0], $this->routes[$method])? $this->routes[$method][$this->ruta2[0]] : self::ERROR;
+        }else{
+            $this->controller = array_key_exists($ruta, $this->routes[$method]) 
+            ? $this->routes[$method][$ruta] : self::ERROR;
         }
-        
-        if (array_key_exists($vista, self::DIRECTORIO)) {
-            require_once self::DIRECTORIO[$vista] . '.php';
-            /* if (!is_array(DIRECTORIO[$vista])) {
-            } else {
-                $controlador = DIRECTORIO[$vista];
-                require_once './app/controller/' . $controlador['controller'] . '.php';
-                $controlador_class = $controlador['controller']; 
-                if (class_exists($controlador_class)) {
-                    $controlador1 = new $controlador_class;  
-                    $metodo1 = $controlador['method']();  
-                    $controlador1->$metodo1();  
-                } else {
-                    echo "Class $controlador_class not found.";
-                }
-            } */
-        } else {
-            require_once self::DIRECTORIO['error'] . '.php';
+        $this->method = $this->controller[1];
+        require_once './app/controller/' . $this->controller[0]. '.php';
+        $this->importacion = $controlador;
+    }
+    public function run(){
+        $ruta = $_SERVER['REQUEST_URI'];
+        $ruta = trim($ruta,'/');
+        $this->match_route($ruta, $_SERVER['REQUEST_METHOD']);
+        $metodo = $this->method;
+        if(count($this->ruta2)>1){
+            $this->importacion->$metodo($this->ruta2[1]);
+        }else{
+            $this->importacion->$metodo();
         }
     }
     public function redireccion($ruta){
