@@ -1,5 +1,5 @@
 body{
-    background: url("../img/Fondo_Pantalla.jpg") fixed no-repeat 0 0;
+    background-color: rgba(220, 167, 167, 0.926);
     background-size: cover;
     background-position: center center;
 }
