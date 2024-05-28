@@ -1,8 +1,11 @@
 <?php
 
 use config\Route;
+use config\SecurityToken;
 
 $dependencia = new Route();
+$securityToken = new SecurityToken();
+$token = $securityToken->generarToken();
 ?>
 
 <div class="container mt-2">
@@ -13,6 +16,7 @@ $dependencia = new Route();
                 <div class="card-body">
                     <h5 class="card-title mt-2">Registro</h5>
                     <form action="<?= $dependencia->redireccion('registreComprobar') ?>" method="POST">
+                        <input type="hidden" name="csrf_token" value="<?php echo $token;?>">
                         <div class="mb-3 mt-2">
                             <label for="nombre" class="form-label">Nombre(s)</label>
                             <input type="text" class="form-control" id="nombre" name="nombre">

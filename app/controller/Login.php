@@ -5,6 +5,7 @@ namespace controller;
 use config\View;
 use model\TablaProductos;
 use model\TablaUsuarios;
+use config\SecurityToken;
 
 require_once realpath('.../../vendor/autoload.php');
 
@@ -37,53 +38,82 @@ class Login extends View
     public function completarRegistro()
     {
         session_start();
-        $producto = new TablaProductos();
-        $datos = $producto->consulta()->all();
-        if (isset($_SESSION['id_usuario'])) {
-            return parent::vista('home', $datos);
-        }
-
-        $usuario = new TablaUsuarios();
-        $passEncrypt = password_hash($_POST['pass'], PASSWORD_DEFAULT);
-
-        $arreglo = [
-            'nombre' => $_POST['nombre'],
-            'apellidoPaterno' => $_POST['apellidoPaterno'],
-            'apellidoMaterno' => $_POST['apellidoMaterno'],
-            'correo' => $_POST['correo'],
-            'pass' => $passEncrypt
-        ];
-
-        $stmt = $usuario->insercion($arreglo);
-        if ($stmt) {
-            return parent::vista('login/login');
+        $securityToken = new SecurityToken();
+    
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $receivedToken = $_POST['csrf_token'];
+    
+            if ($securityToken->validarToken($receivedToken)) {
+                $producto = new TablaProductos();
+                $datos = $producto->consulta()->all();
+                if (isset($_SESSION['id_usuario'])) {
+                    return parent::vista('home', $datos);
+                }
+    
+                $usuario = new TablaUsuarios();
+                $passEncrypt = password_hash($_POST['pass'], PASSWORD_DEFAULT);
+    
+                $arreglo = [
+                    'nombre' => $_POST['nombre'],
+                    'apellidoPaterno' => $_POST['apellidoPaterno'],
+                    'apellidoMaterno' => $_POST['apellidoMaterno'],
+                    'correo' => $_POST['correo'],
+                    'pass' => $passEncrypt
+                ];
+    
+                $stmt = $usuario->insercion($arreglo);
+                if ($stmt) {
+                    return parent::vista('login/login');
+                } else {
+                    return parent::vista('error');
+                }
+            } else {
+                echo "Error: Token de seguridad inválido.";
+            }
+    
+            $securityToken->invalidarToken();
         } else {
-            return parent::vista('error');
+            echo "Error: Método de solicitud no válido.";
         }
     }
-    public function comprobarUsuario()
-    {
+    
+
+    public function comprobarUsuario() {
         session_start();
-        $producto = new TablaProductos();
-        $datos = $producto->consulta()->all();
-        if (isset($_SESSION['id_usuario'])) {
-            return parent::vista('home', $datos);
-        }
+        $securityToken = new SecurityToken();
 
-        $usuario = new TablaUsuarios();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $receivedToken = $_POST['csrf_token'];
 
-        $correo = $_POST['correo'];
-        $pass = $_POST['pass'];
+            if ($securityToken->validarToken($receivedToken)) {
+                $producto = new TablaProductos();
+                $datos = $producto->consulta()->all();
 
-        $correo_veri = $usuario->consulta()->where('correo', $correo)->first();
+                if (isset($_SESSION['id_usuario'])) {
+                    return parent::vista('home', $datos);
+                }
 
-        if ($correo_veri && password_verify($pass, $correo_veri['pass'])) {
-            $_SESSION['correo'] = $correo_veri['correo'];
-            $_SESSION['id_usuario'] = $correo_veri['id_usuario'];
+                $usuario = new TablaUsuarios();
+                $correo = $_POST['correo'];
+                $pass = $_POST['pass'];
 
-            return parent::vista('home', $datos);
+                $correo_veri = $usuario->consulta()->where('correo', $correo)->first();
+
+                if ($correo_veri && password_verify($pass, $correo_veri['pass'])) {
+                    $_SESSION['correo'] = $correo_veri['correo'];
+                    $_SESSION['id_usuario'] = $correo_veri['id_usuario'];
+
+                    return parent::vista('home', $datos);
+                } else {
+                    return parent::vista('login/login');
+                }
+            } else {
+                echo "Error: Token de seguridad inválido.";
+            }
+
+            $securityToken->invalidarToken();
         } else {
-            return parent::vista('login/login');
+            echo "Error: Método de solicitud no válido.";
         }
     }
     public function readProductos()
